@@ -10,7 +10,7 @@ describe('TeaPage', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [TeaPage],
-      imports: [IonicModule.forRoot()],
+      imports: [IonicModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TeaPage);

@@ -1,7 +1,9 @@
 import { Component } from '@angular/core';
 import { Plugins } from '@capacitor/core';
 
-import { Platform } from '@ionic/angular';
+import { Platform, NavController } from '@ionic/angular';
+
+import { IdentityService } from '@app/core';
 
 @Component({
   selector: 'app-root',
@@ -9,7 +11,11 @@ import { Platform } from '@ionic/angular';
   styleUrls: ['app.component.scss'],
 })
 export class AppComponent {
-  constructor(private platform: Platform) {
+  constructor(
+    private identity: IdentityService,
+    private navController: NavController,
+    private platform: Platform,
+  ) {
     this.initializeApp();
   }
 
@@ -18,5 +24,9 @@ export class AppComponent {
       const { SplashScreen } = Plugins;
       SplashScreen.hide();
     }
+    this.identity.changed.subscribe(u => {
+      const route = u ? ['/'] : ['/', 'login'];
+      this.navController.navigateRoot(route);
+    });
   }
 }

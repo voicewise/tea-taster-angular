@@ -1,11 +1,15 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { TestBed, async } from '@angular/core/testing';
 import { Plugins } from '@capacitor/core';
+import { Subject } from 'rxjs';
 
-import { Platform } from '@ionic/angular';
+import { Platform, NavController } from '@ionic/angular';
 
 import { AppComponent } from './app.component';
-import { createPlatformMock } from '../../test/mocks';
+import { IdentityService } from './core';
+import { createIdentityServiceMock } from './core/testing';
+import { createPlatformMock, createNavControllerMock } from '@test/mocks';
+import { User } from './models';
 
 describe('AppComponent', () => {
   let originalSplashScreen: any;
@@ -16,7 +20,11 @@ describe('AppComponent', () => {
     TestBed.configureTestingModule({
       declarations: [AppComponent],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      providers: [{ provide: Platform, useFactory: createPlatformMock }],
+      providers: [
+        { provide: IdentityService, useFactory: createIdentityServiceMock },
+        { provide: NavController, useFactory: createNavControllerMock },
+        { provide: Platform, useFactory: createPlatformMock },
+      ],
     }).compileComponents();
   }));
 
@@ -56,6 +64,40 @@ describe('AppComponent', () => {
         TestBed.createComponent(AppComponent);
         expect(Plugins.SplashScreen.hide).not.toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('navigation', () => {
+    let navController: NavController;
+    let platform: Platform;
+    beforeEach(async () => {
+      navController = TestBed.inject(NavController);
+      platform = TestBed.inject(Platform);
+      TestBed.createComponent(AppComponent);
+      await platform.ready();
+    });
+
+    it('does not route if no identity change', () => {
+      expect(navController.navigateRoot).not.toHaveBeenCalled();
+    });
+
+    it('routes to login if no user', () => {
+      const identity = TestBed.inject(IdentityService);
+      (identity.changed as Subject<User>).next();
+      expect(navController.navigateRoot).toHaveBeenCalledTimes(1);
+      expect(navController.navigateRoot).toHaveBeenCalledWith(['/', 'login']);
+    });
+
+    it('routes to root if user', () => {
+      const identity = TestBed.inject(IdentityService);
+      (identity.changed as Subject<User>).next({
+        id: 33,
+        firstName: 'Fred',
+        lastName: 'Rogers',
+        email: 'beautiful.day@neighborhood.com',
+      });
+      expect(navController.navigateRoot).toHaveBeenCalledTimes(1);
+      expect(navController.navigateRoot).toHaveBeenCalledWith(['/']);
     });
   });
 });
