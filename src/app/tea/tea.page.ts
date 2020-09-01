@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
+import { take } from 'rxjs/operators';
 import { Tea } from '@app/models';
+import { AuthenticationService } from '@app/core';
 
 @Component({
   selector: 'app-tea',
@@ -77,8 +79,12 @@ export class TeaPage {
 
   teaMatrix: Array<Array<Tea>> = [];
 
-  constructor() {
+  constructor(private auth: AuthenticationService) {
     this.listToMatrix();
+  }
+
+  logout() {
+    this.auth.logout().pipe(take(1)).subscribe();
   }
 
   private listToMatrix() {

@@ -9,6 +9,9 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 
 import { LoginPage } from './login.page';
+import { AuthenticationService } from '@app/core';
+import { createAuthenticationServiceMock } from '@app/core/testing';
+import { of } from 'rxjs';
 
 describe('LoginPage', () => {
   let component: LoginPage;
@@ -18,6 +21,12 @@ describe('LoginPage', () => {
     TestBed.configureTestingModule({
       declarations: [LoginPage],
       imports: [FormsModule, IonicModule],
+      providers: [
+        {
+          provide: AuthenticationService,
+          useFactory: createAuthenticationServiceMock,
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(LoginPage);
@@ -108,6 +117,30 @@ describe('LoginPage', () => {
       setInputValue(password, 'YouShallNotPa$$');
       expect(button.disabled).toEqual(true);
     });
+
+    it('performs a login on clicked', () => {
+      const authenticationService = TestBed.inject(AuthenticationService);
+      setInputValue(email, 'test@test.com');
+      setInputValue(password, 'password');
+      click(button);
+      expect(authenticationService.login).toHaveBeenCalledTimes(1);
+      expect(authenticationService.login).toHaveBeenCalledWith(
+        'test@test.com',
+        'password',
+      );
+    });
+
+    it('sets an error message if the login failed', () => {
+      const authenticationService = TestBed.inject(AuthenticationService);
+      const errorDiv: HTMLDivElement = fixture.nativeElement.querySelector(
+        '.error-message',
+      );
+      (authenticationService.login as any).and.returnValue(of(false));
+      click(button);
+      expect(errorDiv.textContent.trim()).toEqual(
+        'Invalid e-mail address or password',
+      );
+    });
   });
 
   describe('error messages', () => {
@@ -154,6 +187,12 @@ describe('LoginPage', () => {
       expect(errorDiv.textContent.trim()).toEqual('Password is required');
     });
   });
+
+  function click(button: HTMLIonButtonElement) {
+    const event = new Event('click');
+    button.dispatchEvent(event);
+    fixture.detectChanges();
+  }
 
   function setInputValue(input: HTMLIonInputElement, value: string) {
     const event = new InputEvent('ionChange');

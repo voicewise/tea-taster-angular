@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { AuthenticationService } from '@app/core';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-login',
@@ -8,10 +10,18 @@ import { Component } from '@angular/core';
 export class LoginPage {
   email: string;
   password: string;
+  errorMessage: string;
 
-  constructor() {}
+  constructor(private auth: AuthenticationService) {}
 
   signIn() {
-    console.log(this.email, this.password);
+    this.auth
+      .login(this.email, this.password)
+      .pipe(take(1))
+      .subscribe(success => {
+        if (!success) {
+          this.errorMessage = 'Invalid e-mail address or password';
+        }
+      });
   }
 }

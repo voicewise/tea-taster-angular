@@ -2,6 +2,8 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 
 import { TeaPage } from './tea.page';
+import { AuthenticationService } from '@app/core';
+import { createAuthenticationServiceMock } from '@app/core/testing';
 
 describe('TeaPage', () => {
   let component: TeaPage;
@@ -11,6 +13,12 @@ describe('TeaPage', () => {
     TestBed.configureTestingModule({
       declarations: [TeaPage],
       imports: [IonicModule],
+      providers: [
+        {
+          provide: AuthenticationService,
+          useFactory: createAuthenticationServiceMock,
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TeaPage);
