@@ -13,9 +13,11 @@ import { environment } from '@env/environment';
 })
 export class IdentityService {
   private key = 'auth-token';
+  /* tslint:disable:variable-name */
   private _changed: Subject<User>;
   private _token: string;
   private _user: User;
+  /* tslint:enable:variable-name */
 
   get changed(): Observable<User> {
     return this._changed.asObservable();
