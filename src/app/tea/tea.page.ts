@@ -4,6 +4,7 @@ import { take, map } from 'rxjs/operators';
 
 import { Tea } from '@app/models';
 import { AuthenticationService, TeaService } from '@app/core';
+import { NavController } from '@ionic/angular';
 
 @Component({
   selector: 'app-tea',
@@ -13,7 +14,11 @@ import { AuthenticationService, TeaService } from '@app/core';
 export class TeaPage implements OnInit {
   teaMatrix$: Observable<Array<Array<Tea>>>;
 
-  constructor(private auth: AuthenticationService, private tea: TeaService) {}
+  constructor(
+    private auth: AuthenticationService,
+    private navController: NavController,
+    private tea: TeaService,
+  ) {}
 
   ngOnInit() {
     this.teaMatrix$ = this.tea
@@ -23,6 +28,10 @@ export class TeaPage implements OnInit {
 
   logout() {
     this.auth.logout().pipe(take(1)).subscribe();
+  }
+
+  showDetailsPage(id: number) {
+    this.navController.navigateForward(['tea-details', id]);
   }
 
   private listToMatrix(teas: Array<Tea>): Array<Array<Tea>> {

@@ -22,7 +22,7 @@
       class="ion-justify-content-center ion-align-items-stretch"
     >
       <ion-col *ngFor="let tea of teaRow" size="12" size-md="6" size-xl="3">
-        <ion-card>
+        <ion-card button (click)="showDetailsPage(tea.id)">
           <ion-img [src]="tea.image"></ion-img>
           <ion-card-header>
             <ion-card-title>{{tea.name}}</ion-card-title>

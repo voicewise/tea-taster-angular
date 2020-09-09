@@ -1,0 +1,16 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="tea"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Tea Details</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="ion-justify-content-center" style="display: flex">
+    <ion-img [src]="tea?.image"></ion-img>
+  </div>
+  <h1>{{ tea?.name }}</h1>
+  <p>{{ tea?.description }}</p>
+</ion-content>

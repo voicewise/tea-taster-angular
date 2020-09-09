@@ -1,6 +1,6 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, NavController } from '@ionic/angular';
 import { of } from 'rxjs';
 
 import { TeaPage } from './tea.page';
@@ -9,6 +9,7 @@ import {
   createAuthenticationServiceMock,
   createTeaServiceMock,
 } from '@app/core/testing';
+import { createNavControllerMock } from '@test/mocks';
 
 describe('TeaPage', () => {
   let component: TeaPage;
@@ -22,6 +23,10 @@ describe('TeaPage', () => {
         {
           provide: AuthenticationService,
           useFactory: createAuthenticationServiceMock,
+        },
+        {
+          provide: NavController,
+          useFactory: createNavControllerMock,
         },
         {
           provide: TeaService,
@@ -126,6 +131,23 @@ describe('TeaPage', () => {
       expect(rows.length).toEqual(1);
       const cols = rows[0].queryAll(By.css('ion-col'));
       expect(cols.length).toEqual(4);
+    });
+  });
+
+  describe('show details page', () => {
+    it('navigates forward', () => {
+      const navController = TestBed.inject(NavController);
+      component.showDetailsPage(42);
+      expect(navController.navigateForward).toHaveBeenCalledTimes(1);
+    });
+
+    it('passes the details page and the ID', () => {
+      const navController = TestBed.inject(NavController);
+      component.showDetailsPage(42);
+      expect(navController.navigateForward).toHaveBeenCalledWith([
+        'tea-details',
+        42,
+      ]);
     });
   });
 });
