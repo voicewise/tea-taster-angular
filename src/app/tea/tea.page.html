@@ -18,7 +18,7 @@
 
   <ion-grid>
     <ion-row
-      *ngFor="let teaRow of teaMatrix"
+      *ngFor="let teaRow of teaMatrix$ | async"
       class="ion-justify-content-center ion-align-items-stretch"
     >
       <ion-col *ngFor="let tea of teaRow" size="12" size-md="6" size-xl="3">
