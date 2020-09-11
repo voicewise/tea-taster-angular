@@ -7,12 +7,14 @@ import { IonicModule } from '@ionic/angular';
 import { TeaDetailsPageRoutingModule } from './tea-details-routing.module';
 
 import { TeaDetailsPage } from './tea-details.page';
+import { SharedModule } from '@app/shared';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
+    SharedModule,
     TeaDetailsPageRoutingModule,
   ],
   declarations: [TeaDetailsPage],

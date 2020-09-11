@@ -5,5 +5,6 @@ export function createTeaServiceMock() {
   return jasmine.createSpyObj<TeaService>('TeaService', {
     getAll: EMPTY,
     get: EMPTY,
+    save: Promise.resolve(),
   });
 }

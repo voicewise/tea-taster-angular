@@ -1,0 +1,9 @@
+<div>
+  <span *ngFor="let n of [1, 2, 3, 4, 5]">
+    <ion-icon
+      [name]="n <= rating ? 'star' : 'star-outline'"
+      (click)="ratingClicked(n)"
+    >
+    </ion-icon>
+  </span>
+</div>

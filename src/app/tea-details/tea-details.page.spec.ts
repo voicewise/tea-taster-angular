@@ -1,4 +1,6 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormsModule } from '@angular/forms';
+import { By } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { IonicModule, NavController } from '@ionic/angular';
 import { of } from 'rxjs';
@@ -7,7 +9,7 @@ import { TeaDetailsPage } from './tea-details.page';
 import { createActivatedRouteMock, createNavControllerMock } from '@test/mocks';
 import { TeaService } from '@app/core';
 import { createTeaServiceMock } from '@app/core/testing';
-import { By } from '@angular/platform-browser';
+import { SharedModule } from '@app/shared';
 
 describe('TeaDetailsPage', () => {
   let component: TeaDetailsPage;
@@ -16,7 +18,7 @@ describe('TeaDetailsPage', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [TeaDetailsPage],
-      imports: [IonicModule],
+      imports: [FormsModule, IonicModule, SharedModule],
       providers: [
         { provide: ActivatedRoute, useFactory: createActivatedRouteMock },
         { provide: NavController, useFactory: createNavControllerMock },
@@ -66,6 +68,66 @@ describe('TeaDetailsPage', () => {
       expect(h1.nativeElement.textContent).toEqual('Yellow');
       const p = fixture.debugElement.query(By.css('p'));
       expect(p.nativeElement.textContent).toEqual('Yellow tea description.');
+    });
+
+    it('sets the rating', () => {
+      const route = TestBed.inject(ActivatedRoute);
+      const teaService = TestBed.inject(TeaService);
+      (teaService.get as any).and.returnValue(
+        of({
+          id: 42,
+          name: 'Yellow',
+          image: 'assets/img/yellow.jpg',
+          description: 'Yellow tea description.',
+          rating: 2,
+        }),
+      );
+      (route.snapshot.paramMap.get as any).and.returnValue('42');
+      fixture.detectChanges();
+      expect(component.rating).toEqual(2);
+    });
+  });
+
+  describe('rating changed', () => {
+    let teaService: TeaService;
+    beforeEach(() => {
+      const route = TestBed.inject(ActivatedRoute);
+      teaService = TestBed.inject(TeaService);
+      (teaService.get as any).and.returnValue(
+        of({
+          id: 42,
+          name: 'Yellow',
+          image: 'assets/img/yellow.jpg',
+          description: 'Yellow tea description.',
+        }),
+      );
+      (route.snapshot.paramMap.get as any).and.returnValue('42');
+      fixture.detectChanges();
+    });
+
+    it('updates the tea', () => {
+      component.rating = 4;
+      component.ratingChanged();
+      expect(component.tea).toEqual({
+        id: 42,
+        name: 'Yellow',
+        image: 'assets/img/yellow.jpg',
+        description: 'Yellow tea description.',
+        rating: 4,
+      });
+    });
+
+    it('saves the change', () => {
+      component.rating = 4;
+      component.ratingChanged();
+      expect(teaService.save).toHaveBeenCalledTimes(1);
+      expect(teaService.save).toHaveBeenCalledWith({
+        id: 42,
+        name: 'Yellow',
+        image: 'assets/img/yellow.jpg',
+        description: 'Yellow tea description.',
+        rating: 4,
+      });
     });
   });
 });

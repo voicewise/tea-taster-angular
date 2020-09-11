@@ -13,4 +13,8 @@
   </div>
   <h1>{{ tea?.name }}</h1>
   <p>{{ tea?.description }}</p>
+  <app-rating
+    [(ngModel)]="rating"
+    (ngModelChange)="ratingChanged()"
+  ></app-rating>
 </ion-content>
