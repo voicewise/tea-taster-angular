@@ -10,6 +10,13 @@ const routes: Routes = [
     component: TeaPage,
     canActivate: [AuthGuardService],
   },
+  {
+    path: 'tea-details',
+    loadChildren: () =>
+      import('../tea-details/tea-details.module').then(
+        m => m.TeaDetailsPageModule,
+      ),
+  },
 ];
 
 @NgModule({

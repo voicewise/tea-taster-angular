@@ -145,6 +145,8 @@ describe('TeaPage', () => {
       const navController = TestBed.inject(NavController);
       component.showDetailsPage(42);
       expect(navController.navigateForward).toHaveBeenCalledWith([
+        'tabs',
+        'tea',
         'tea-details',
         42,
       ]);
