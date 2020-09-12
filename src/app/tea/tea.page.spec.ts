@@ -4,11 +4,8 @@ import { IonicModule, NavController } from '@ionic/angular';
 import { of } from 'rxjs';
 
 import { TeaPage } from './tea.page';
-import { AuthenticationService, TeaService } from '@app/core';
-import {
-  createAuthenticationServiceMock,
-  createTeaServiceMock,
-} from '@app/core/testing';
+import { TeaService } from '@app/core';
+import { createTeaServiceMock } from '@app/core/testing';
 import { createNavControllerMock } from '@test/mocks';
 
 describe('TeaPage', () => {
@@ -20,10 +17,6 @@ describe('TeaPage', () => {
       declarations: [TeaPage],
       imports: [IonicModule],
       providers: [
-        {
-          provide: AuthenticationService,
-          useFactory: createAuthenticationServiceMock,
-        },
         {
           provide: NavController,
           useFactory: createNavControllerMock,

@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { take, map } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 
 import { Tea } from '@app/models';
-import { AuthenticationService, TeaService } from '@app/core';
+import { TeaService } from '@app/core';
 import { NavController } from '@ionic/angular';
 
 @Component({
@@ -14,20 +14,12 @@ import { NavController } from '@ionic/angular';
 export class TeaPage implements OnInit {
   teaMatrix$: Observable<Array<Array<Tea>>>;
 
-  constructor(
-    private auth: AuthenticationService,
-    private navController: NavController,
-    private tea: TeaService,
-  ) {}
+  constructor(private navController: NavController, private tea: TeaService) {}
 
   ngOnInit() {
     this.teaMatrix$ = this.tea
       .getAll()
       .pipe(map((teas: Array<Tea>) => this.listToMatrix(teas)));
-  }
-
-  logout() {
-    this.auth.logout().pipe(take(1)).subscribe();
   }
 
   showDetailsPage(id: number) {
