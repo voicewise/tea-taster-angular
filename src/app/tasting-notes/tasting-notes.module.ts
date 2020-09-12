@@ -7,12 +7,14 @@ import { IonicModule } from '@ionic/angular';
 import { TastingNotesPageRoutingModule } from './tasting-notes-routing.module';
 
 import { TastingNotesPage } from './tasting-notes.page';
+import { TastingNoteEditorModule } from './tasting-note-editor/tasting-note-editor.module';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
+    TastingNoteEditorModule,
     TastingNotesPageRoutingModule,
   ],
   declarations: [TastingNotesPage],
