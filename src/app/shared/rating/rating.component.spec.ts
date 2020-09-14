@@ -15,8 +15,8 @@ import { RatingComponent } from './rating.component';
 })
 class TestHostComponent {
   disabled = false;
-  rating: number = 1;
-  changed: number = 0;
+  rating = 1;
+  changed = 0;
   onChange() {
     this.changed++;
   }

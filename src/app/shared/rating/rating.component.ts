@@ -30,7 +30,10 @@ export class RatingComponent implements ControlValueAccessor {
     }
   }
 
+  /* tslint:disable:variable-name */
   onChange = (_rating: number) => {};
+  /* tslint:endable:variable-name */
+
   onTouched = () => {};
 
   writeValue(rating: number): void {
