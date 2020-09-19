@@ -5,7 +5,8 @@
   "author": "Ken Sodemann",
   "homepage": "https://ionicframework.com/",
   "scripts": {
-    "build": "ng build --prod && cap copy",
+    "build": "ng build && cap copy",
+    "build:prod": "ng build --prod && cap copy",
     "e2e": "ng e2e",
     "lint": "ng lint",
     "ng": "ng",
