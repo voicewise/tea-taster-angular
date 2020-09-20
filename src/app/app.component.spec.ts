@@ -6,29 +6,34 @@ import { Subject } from 'rxjs';
 import { Platform, NavController } from '@ionic/angular';
 
 import { AppComponent } from './app.component';
-import { IdentityService } from './core';
-import { createIdentityServiceMock } from './core/testing';
+import { IdentityService, ApplicationService } from './core';
+import {
+  createIdentityServiceMock,
+  createAppliationServiceMock,
+} from './core/testing';
 import { createPlatformMock, createNavControllerMock } from '@test/mocks';
 import { User } from './models';
 
 describe('AppComponent', () => {
   let originalSplashScreen: any;
 
-  beforeEach(
-    waitForAsync(() => {
-      originalSplashScreen = Plugins.SplashScreen;
-      Plugins.SplashScreen = jasmine.createSpyObj('SplashScreen', ['hide']);
-      TestBed.configureTestingModule({
-        declarations: [AppComponent],
-        schemas: [CUSTOM_ELEMENTS_SCHEMA],
-        providers: [
-          { provide: IdentityService, useFactory: createIdentityServiceMock },
-          { provide: NavController, useFactory: createNavControllerMock },
-          { provide: Platform, useFactory: createPlatformMock },
-        ],
-      }).compileComponents();
-    }),
-  );
+  beforeEach(waitForAsync(() => {
+    originalSplashScreen = Plugins.SplashScreen;
+    Plugins.SplashScreen = jasmine.createSpyObj('SplashScreen', ['hide']);
+    TestBed.configureTestingModule({
+      declarations: [AppComponent],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA],
+      providers: [
+        {
+          provide: ApplicationService,
+          useFactory: createAppliationServiceMock,
+        },
+        { provide: IdentityService, useFactory: createIdentityServiceMock },
+        { provide: NavController, useFactory: createNavControllerMock },
+        { provide: Platform, useFactory: createPlatformMock },
+      ],
+    }).compileComponents();
+  }));
 
   afterEach(() => {
     Plugins.SplashScreen = originalSplashScreen;
@@ -55,6 +60,12 @@ describe('AppComponent', () => {
         TestBed.createComponent(AppComponent);
         expect(Plugins.SplashScreen.hide).toHaveBeenCalledTimes(1);
       });
+
+      it('does not register for updates', () => {
+        const application = TestBed.inject(ApplicationService);
+        TestBed.createComponent(AppComponent);
+        expect(application.registerForUpdates).not.toHaveBeenCalled();
+      });
     });
 
     describe('in a web context', () => {
@@ -65,6 +76,12 @@ describe('AppComponent', () => {
       it('does not hide the splash screen', () => {
         TestBed.createComponent(AppComponent);
         expect(Plugins.SplashScreen.hide).not.toHaveBeenCalled();
+      });
+
+      it('registers for updates', () => {
+        const application = TestBed.inject(ApplicationService);
+        TestBed.createComponent(AppComponent);
+        expect(application.registerForUpdates).toHaveBeenCalledTimes(1);
       });
     });
   });

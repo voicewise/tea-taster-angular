@@ -3,7 +3,7 @@ import { Plugins } from '@capacitor/core';
 
 import { Platform, NavController } from '@ionic/angular';
 
-import { IdentityService } from '@app/core';
+import { ApplicationService, IdentityService } from '@app/core';
 
 @Component({
   selector: 'app-root',
@@ -12,6 +12,7 @@ import { IdentityService } from '@app/core';
 })
 export class AppComponent {
   constructor(
+    private application: ApplicationService,
     private identity: IdentityService,
     private navController: NavController,
     private platform: Platform,
@@ -21,9 +22,19 @@ export class AppComponent {
 
   initializeApp() {
     if (this.platform.is('hybrid')) {
-      const { SplashScreen } = Plugins;
-      SplashScreen.hide();
+      this.hideSplashScreen();
+    } else {
+      this.application.registerForUpdates();
     }
+    this.handleLoginChange();
+  }
+
+  private hideSplashScreen() {
+    const { SplashScreen } = Plugins;
+    SplashScreen.hide();
+  }
+
+  private handleLoginChange() {
     this.identity.changed.subscribe(u => {
       const route = u ? ['/'] : ['/', 'login'];
       this.navController.navigateRoot(route);
