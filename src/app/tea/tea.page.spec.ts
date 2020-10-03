@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { IonicModule, NavController } from '@ionic/angular';
 import { of } from 'rxjs';
@@ -12,25 +12,27 @@ describe('TeaPage', () => {
   let component: TeaPage;
   let fixture: ComponentFixture<TeaPage>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [TeaPage],
-      imports: [IonicModule],
-      providers: [
-        {
-          provide: NavController,
-          useFactory: createNavControllerMock,
-        },
-        {
-          provide: TeaService,
-          useFactory: createTeaServiceMock,
-        },
-      ],
-    }).compileComponents();
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [TeaPage],
+        imports: [IonicModule],
+        providers: [
+          {
+            provide: NavController,
+            useFactory: createNavControllerMock,
+          },
+          {
+            provide: TeaService,
+            useFactory: createTeaServiceMock,
+          },
+        ],
+      }).compileComponents();
 
-    fixture = TestBed.createComponent(TeaPage);
-    component = fixture.componentInstance;
-  }));
+      fixture = TestBed.createComponent(TeaPage);
+      component = fixture.componentInstance;
+    }),
+  );
 
   it('should create', () => {
     fixture.detectChanges();

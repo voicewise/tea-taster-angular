@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
@@ -15,20 +15,22 @@ describe('TeaDetailsPage', () => {
   let component: TeaDetailsPage;
   let fixture: ComponentFixture<TeaDetailsPage>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [TeaDetailsPage],
-      imports: [FormsModule, IonicModule, SharedModule],
-      providers: [
-        { provide: ActivatedRoute, useFactory: createActivatedRouteMock },
-        { provide: NavController, useFactory: createNavControllerMock },
-        { provide: TeaService, useFactory: createTeaServiceMock },
-      ],
-    }).compileComponents();
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [TeaDetailsPage],
+        imports: [FormsModule, IonicModule, SharedModule],
+        providers: [
+          { provide: ActivatedRoute, useFactory: createActivatedRouteMock },
+          { provide: NavController, useFactory: createNavControllerMock },
+          { provide: TeaService, useFactory: createTeaServiceMock },
+        ],
+      }).compileComponents();
 
-    fixture = TestBed.createComponent(TeaDetailsPage);
-    component = fixture.componentInstance;
-  }));
+      fixture = TestBed.createComponent(TeaDetailsPage);
+      component = fixture.componentInstance;
+    }),
+  );
 
   it('should create', () => {
     expect(component).toBeTruthy();

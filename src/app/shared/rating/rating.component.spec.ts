@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
@@ -27,17 +27,19 @@ describe('RatingComponent', () => {
   let ratingEl: HTMLElement;
   let fixture: ComponentFixture<TestHostComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [RatingComponent, TestHostComponent],
-      imports: [FormsModule, IonicModule],
-    }).compileComponents();
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [RatingComponent, TestHostComponent],
+        imports: [FormsModule, IonicModule],
+      }).compileComponents();
 
-    fixture = TestBed.createComponent(TestHostComponent);
-    hostComponent = fixture.componentInstance;
-    ratingEl = fixture.nativeElement.querySelector('app-rating');
-    fixture.detectChanges();
-  }));
+      fixture = TestBed.createComponent(TestHostComponent);
+      hostComponent = fixture.componentInstance;
+      ratingEl = fixture.nativeElement.querySelector('app-rating');
+      fixture.detectChanges();
+    }),
+  );
 
   it('should create', () => {
     expect(hostComponent).toBeTruthy();

@@ -1,9 +1,9 @@
 import {
-  async,
   ComponentFixture,
   fakeAsync,
   TestBed,
   tick,
+  waitForAsync,
 } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
@@ -17,22 +17,24 @@ describe('LoginPage', () => {
   let component: LoginPage;
   let fixture: ComponentFixture<LoginPage>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [LoginPage],
-      imports: [FormsModule, IonicModule],
-      providers: [
-        {
-          provide: AuthenticationService,
-          useFactory: createAuthenticationServiceMock,
-        },
-      ],
-    }).compileComponents();
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [LoginPage],
+        imports: [FormsModule, IonicModule],
+        providers: [
+          {
+            provide: AuthenticationService,
+            useFactory: createAuthenticationServiceMock,
+          },
+        ],
+      }).compileComponents();
 
-    fixture = TestBed.createComponent(LoginPage);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  }));
+      fixture = TestBed.createComponent(LoginPage);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+    }),
+  );
 
   it('should create', () => {
     expect(component).toBeTruthy();

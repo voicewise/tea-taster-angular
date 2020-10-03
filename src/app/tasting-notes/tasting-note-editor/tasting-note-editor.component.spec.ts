@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ModalController } from '@ionic/angular';
@@ -17,46 +17,48 @@ describe('TastingNoteEditorComponent', () => {
   let component: TastingNoteEditorComponent;
   let fixture: ComponentFixture<TastingNoteEditorComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [TastingNoteEditorComponent],
-      imports: [FormsModule, IonicModule, SharedModule],
-      providers: [
-        {
-          provide: ModalController,
-          useFactory: () => createOverlayControllerMock('ModalController'),
-        },
-        {
-          provide: TastingNotesService,
-          useFactory: createTastingNotesServiceMock,
-        },
-        { provide: TeaService, useFactory: createTeaServiceMock },
-      ],
-    }).compileComponents();
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [TastingNoteEditorComponent],
+        imports: [FormsModule, IonicModule, SharedModule],
+        providers: [
+          {
+            provide: ModalController,
+            useFactory: () => createOverlayControllerMock('ModalController'),
+          },
+          {
+            provide: TastingNotesService,
+            useFactory: createTastingNotesServiceMock,
+          },
+          { provide: TeaService, useFactory: createTeaServiceMock },
+        ],
+      }).compileComponents();
 
-    const teaService = TestBed.inject(TeaService);
-    (teaService.getAll as any).and.returnValue(
-      of([
-        {
-          id: 7,
-          name: 'White',
-          image: 'assets/img/white.jpg',
-          description: 'White tea description.',
-          rating: 5,
-        },
-        {
-          id: 8,
-          name: 'Yellow',
-          image: 'assets/img/yellow.jpg',
-          description: 'Yellow tea description.',
-          rating: 3,
-        },
-      ]),
-    );
+      const teaService = TestBed.inject(TeaService);
+      (teaService.getAll as any).and.returnValue(
+        of([
+          {
+            id: 7,
+            name: 'White',
+            image: 'assets/img/white.jpg',
+            description: 'White tea description.',
+            rating: 5,
+          },
+          {
+            id: 8,
+            name: 'Yellow',
+            image: 'assets/img/yellow.jpg',
+            description: 'Yellow tea description.',
+            rating: 3,
+          },
+        ]),
+      );
 
-    fixture = TestBed.createComponent(TastingNoteEditorComponent);
-    component = fixture.componentInstance;
-  }));
+      fixture = TestBed.createComponent(TastingNoteEditorComponent);
+      component = fixture.componentInstance;
+    }),
+  );
 
   it('should create', () => {
     fixture.detectChanges();

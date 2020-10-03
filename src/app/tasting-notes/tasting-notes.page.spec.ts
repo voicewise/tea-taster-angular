@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule, ModalController, IonRouterOutlet } from '@ionic/angular';
 
 import { TastingNotesPage } from './tasting-notes.page';
@@ -24,33 +24,35 @@ describe('TastingNotesPage', () => {
     nativeEl: {},
   };
 
-  beforeEach(async(() => {
-    initializeTestData();
-    modal = createOverlayElementMock('Modal');
-    TestBed.configureTestingModule({
-      declarations: [TastingNotesPage],
-      imports: [IonicModule, TastingNoteEditorModule],
-      providers: [
-        {
-          provide: ModalController,
-          useFactory: () =>
-            createOverlayControllerMock('ModalController', modal),
-        },
-        { provide: IonRouterOutlet, useValue: mockRouterOutlet },
-        {
-          provide: TastingNotesService,
-          useFactory: createTastingNotesServiceMock,
-        },
-      ],
-    }).compileComponents();
+  beforeEach(
+    waitForAsync(() => {
+      initializeTestData();
+      modal = createOverlayElementMock('Modal');
+      TestBed.configureTestingModule({
+        declarations: [TastingNotesPage],
+        imports: [IonicModule, TastingNoteEditorModule],
+        providers: [
+          {
+            provide: ModalController,
+            useFactory: () =>
+              createOverlayControllerMock('ModalController', modal),
+          },
+          { provide: IonRouterOutlet, useValue: mockRouterOutlet },
+          {
+            provide: TastingNotesService,
+            useFactory: createTastingNotesServiceMock,
+          },
+        ],
+      }).compileComponents();
 
-    const tastingNotesService = TestBed.inject(TastingNotesService);
-    (tastingNotesService.getAll as any).and.returnValue(of(testData));
+      const tastingNotesService = TestBed.inject(TastingNotesService);
+      (tastingNotesService.getAll as any).and.returnValue(of(testData));
 
-    fixture = TestBed.createComponent(TastingNotesPage);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  }));
+      fixture = TestBed.createComponent(TastingNotesPage);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+    }),
+  );
 
   it('should create', () => {
     expect(component).toBeTruthy();

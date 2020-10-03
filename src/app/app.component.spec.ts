@@ -1,5 +1,5 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { TestBed, async } from '@angular/core/testing';
+import { TestBed, waitForAsync } from '@angular/core/testing';
 import { Plugins } from '@capacitor/core';
 import { Subject } from 'rxjs';
 
@@ -14,19 +14,21 @@ import { User } from './models';
 describe('AppComponent', () => {
   let originalSplashScreen: any;
 
-  beforeEach(async(() => {
-    originalSplashScreen = Plugins.SplashScreen;
-    Plugins.SplashScreen = jasmine.createSpyObj('SplashScreen', ['hide']);
-    TestBed.configureTestingModule({
-      declarations: [AppComponent],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      providers: [
-        { provide: IdentityService, useFactory: createIdentityServiceMock },
-        { provide: NavController, useFactory: createNavControllerMock },
-        { provide: Platform, useFactory: createPlatformMock },
-      ],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      originalSplashScreen = Plugins.SplashScreen;
+      Plugins.SplashScreen = jasmine.createSpyObj('SplashScreen', ['hide']);
+      TestBed.configureTestingModule({
+        declarations: [AppComponent],
+        schemas: [CUSTOM_ELEMENTS_SCHEMA],
+        providers: [
+          { provide: IdentityService, useFactory: createIdentityServiceMock },
+          { provide: NavController, useFactory: createNavControllerMock },
+          { provide: Platform, useFactory: createPlatformMock },
+        ],
+      }).compileComponents();
+    }),
+  );
 
   afterEach(() => {
     Plugins.SplashScreen = originalSplashScreen;
