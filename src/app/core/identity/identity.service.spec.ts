@@ -3,33 +3,25 @@ import {
   HttpClientTestingModule,
   HttpTestingController,
 } from '@angular/common/http/testing';
-import { Plugins } from '@capacitor/core';
+import { Platform } from '@ionic/angular';
 
 import { IdentityService } from './identity.service';
 import { environment } from '@env/environment';
 import { User } from '@app/models';
+import { createPlatformMock } from '@test/mocks';
+import { DefaultSession } from '@ionic-enterprise/identity-vault';
 
 describe('IdentityService', () => {
   let service: IdentityService;
   let httpTestController: HttpTestingController;
-  let originalStorage: any;
 
   beforeEach(() => {
-    originalStorage = Plugins.Storage;
-    Plugins.Storage = jasmine.createSpyObj('Storage', {
-      get: Promise.resolve(),
-      set: Promise.resolve(),
-      remove: Promise.resolve(),
-    });
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
+      providers: [{ provide: Platform, useFactory: createPlatformMock }],
     });
     service = TestBed.inject(IdentityService);
     httpTestController = TestBed.inject(HttpTestingController);
-  });
-
-  afterEach(() => {
-    Plugins.Storage = originalStorage;
   });
 
   it('should be created', () => {
@@ -37,19 +29,21 @@ describe('IdentityService', () => {
   });
 
   describe('init', () => {
-    it('gets the stored token', async () => {
+    it('restores the session', async () => {
+      spyOn(service, 'restoreSession');
       await service.init();
-      expect(Plugins.Storage.get).toHaveBeenCalledTimes(1);
-      expect(Plugins.Storage.get).toHaveBeenCalledWith({ key: 'auth-token' });
+      expect(service.restoreSession).toHaveBeenCalledTimes(1);
     });
 
     describe('if there is a token', () => {
       beforeEach(() => {
-        (Plugins.Storage.get as any).and.returnValue(
-          Promise.resolve({
-            value: '3884915llf950',
-          }),
-        );
+        spyOn(service, 'restoreSession').and.callFake(async () => {
+          (service as any).session = {
+            username: 'meh',
+            token: '3884915llf950',
+          };
+          return (service as any).session;
+        });
       });
 
       it('assigns the token', async () => {
@@ -87,6 +81,13 @@ describe('IdentityService', () => {
     });
 
     describe('if there is not a token', () => {
+      beforeEach(() => {
+        spyOn(service, 'restoreSession').and.callFake(() => {
+          (service as any).session = undefined;
+          return undefined;
+        });
+      });
+
       it('does not assign a token', async () => {
         await service.init();
         expect(service.token).toBeUndefined();
@@ -120,20 +121,8 @@ describe('IdentityService', () => {
       });
     });
 
-    it('sets the token', () => {
-      service.set(
-        {
-          id: 42,
-          firstName: 'Joe',
-          lastName: 'Tester',
-          email: 'test@test.org',
-        },
-        '19940059fkkf039',
-      );
-      expect(service.token).toEqual('19940059fkkf039');
-    });
-
-    it('saves the token in storage', async () => {
+    it('calls the base class login', async () => {
+      spyOn(service, 'login');
       await service.set(
         {
           id: 42,
@@ -143,16 +132,16 @@ describe('IdentityService', () => {
         },
         '19940059fkkf039',
       );
-      expect(Plugins.Storage.set).toHaveBeenCalledTimes(1);
-      expect(Plugins.Storage.set).toHaveBeenCalledWith({
-        key: 'auth-token',
-        value: '19940059fkkf039',
+      expect(service.login).toHaveBeenCalledTimes(1);
+      expect(service.login).toHaveBeenCalledWith({
+        username: 'test@test.org',
+        token: '19940059fkkf039',
       });
     });
 
     it('emits the change', async () => {
-      let user: User;
-      service.changed.subscribe(u => (user = u));
+      let session: DefaultSession;
+      service.changed.subscribe(s => (session = s));
       await service.set(
         {
           id: 42,
@@ -162,11 +151,9 @@ describe('IdentityService', () => {
         },
         '19940059fkkf039',
       );
-      expect(user).toEqual({
-        id: 42,
-        firstName: 'Joe',
-        lastName: 'Tester',
-        email: 'test@test.org',
+      expect(session).toEqual({
+        username: 'test@test.org',
+        token: '19940059fkkf039',
       });
     });
   });
@@ -189,24 +176,20 @@ describe('IdentityService', () => {
       expect(service.user).toBeUndefined();
     });
 
-    it('clears the token', () => {
-      service.clear();
-      expect(service.token).toBeUndefined();
-    });
-
-    it('clears the storage', async () => {
+    it('calls the logout method', async () => {
+      spyOn(service, 'logout');
       await service.clear();
-      expect(Plugins.Storage.remove).toHaveBeenCalledTimes(1);
-      expect(Plugins.Storage.remove).toHaveBeenCalledWith({
-        key: 'auth-token',
-      });
+      expect(service.logout).toHaveBeenCalledTimes(1);
     });
 
     it('emits empty', async () => {
-      let user: User = { ...service.user };
-      service.changed.subscribe(u => (user = u));
+      let session: DefaultSession = {
+        username: 'test@test.com',
+        token: 'IAmAToken',
+      };
+      service.changed.subscribe(s => (session = s));
       await service.clear();
-      expect(user).toBeUndefined();
+      expect(session).toBeUndefined();
     });
   });
 });

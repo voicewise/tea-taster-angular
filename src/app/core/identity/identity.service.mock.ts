@@ -1,5 +1,5 @@
 import { Subject } from 'rxjs';
-import { User } from '@app/models';
+import { DefaultSession } from '@ionic-enterprise/identity-vault';
 import { IdentityService } from './identity.service';
 
 export function createIdentityServiceMock() {
@@ -8,6 +8,6 @@ export function createIdentityServiceMock() {
     set: Promise.resolve(),
     clear: Promise.resolve(),
   });
-  (mock as any).changed = new Subject<User>();
+  (mock as any).changed = new Subject<DefaultSession>();
   return mock;
 }

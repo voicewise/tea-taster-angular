@@ -10,6 +10,7 @@ import { IdentityService } from './core';
 import { createIdentityServiceMock } from './core/testing';
 import { createPlatformMock, createNavControllerMock } from '@test/mocks';
 import { User } from './models';
+import { DefaultSession } from '@ionic-enterprise/identity-vault';
 
 describe('AppComponent', () => {
   let originalSplashScreen: any;
@@ -85,18 +86,16 @@ describe('AppComponent', () => {
 
     it('routes to login if no user', () => {
       const identity = TestBed.inject(IdentityService);
-      (identity.changed as Subject<User>).next();
+      (identity.changed as Subject<DefaultSession>).next();
       expect(navController.navigateRoot).toHaveBeenCalledTimes(1);
       expect(navController.navigateRoot).toHaveBeenCalledWith(['/', 'login']);
     });
 
     it('routes to root if user', () => {
       const identity = TestBed.inject(IdentityService);
-      (identity.changed as Subject<User>).next({
-        id: 33,
-        firstName: 'Fred',
-        lastName: 'Rogers',
-        email: 'beautiful.day@neighborhood.com',
+      (identity.changed as Subject<DefaultSession>).next({
+        username: 'beautiful.day@neighborhood.com',
+        token: 'TheLandOfMakeBelieve',
       });
       expect(navController.navigateRoot).toHaveBeenCalledTimes(1);
       expect(navController.navigateRoot).toHaveBeenCalledWith(['/']);
