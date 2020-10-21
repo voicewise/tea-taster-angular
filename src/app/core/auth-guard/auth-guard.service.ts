@@ -13,7 +13,13 @@ export class AuthGuardService implements CanActivate {
     private navController: NavController,
   ) {}
 
-  canActivate(): boolean {
+  async canActivate(): Promise<boolean> {
+    if (!this.identity.token) {
+      try {
+        await this.identity.restoreSession();
+      } catch (e) {}
+    }
+
     if (this.identity.token) {
       return true;
     }

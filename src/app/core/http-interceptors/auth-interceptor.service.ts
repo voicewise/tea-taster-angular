@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { from, Observable } from 'rxjs';
+import { mergeMap } from 'rxjs/operators';
 import {
   HttpEvent,
   HttpInterceptor,
@@ -17,14 +18,35 @@ export class AuthInterceptor implements HttpInterceptor {
     req: HttpRequest<any>,
     next: HttpHandler,
   ): Observable<HttpEvent<any>> {
-    if (this.requestRequiresToken(req) && this.identity.token) {
-      req = req.clone({
+    return from(this.updateRequestHeaders(req)).pipe(
+      mergeMap(r => next.handle(r)),
+    );
+  }
+
+  private async updateRequestHeaders(
+    req: HttpRequest<any>,
+  ): Promise<HttpRequest<any>> {
+    if (!this.requestRequiresToken(req)) {
+      return req;
+    }
+
+    if (!this.identity.token) {
+      try {
+        await this.identity.restoreSession();
+      } catch (e) {}
+    }
+    return this.setBearerToken(req);
+  }
+
+  private setBearerToken(req: HttpRequest<any>): HttpRequest<any> {
+    if (this.identity.token) {
+      return req.clone({
         setHeaders: {
           Authorization: 'Bearer ' + this.identity.token,
         },
       });
     }
-    return next.handle(req);
+    return req;
   }
 
   private requestRequiresToken(req: HttpRequest<any>): boolean {

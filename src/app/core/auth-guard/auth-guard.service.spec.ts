@@ -29,27 +29,55 @@ describe('AuthGuardService', () => {
       const identity = TestBed.inject(IdentityService);
       (identity as any).token = '294905993';
     });
-    it('does not navigate', () => {
+
+    it('does not navigate', async () => {
       const navController = TestBed.inject(NavController);
-      service.canActivate();
+      await service.canActivate();
       expect(navController.navigateRoot).not.toHaveBeenCalled();
     });
 
-    it('returns true', () => {
-      expect(service.canActivate()).toEqual(true);
+    it('returns true', async () => {
+      expect(await service.canActivate()).toEqual(true);
     });
   });
 
   describe('when not logged in', () => {
-    it('navigates to the login page', () => {
-      const navController = TestBed.inject(NavController);
-      service.canActivate();
-      expect(navController.navigateRoot).toHaveBeenCalledTimes(1);
-      expect(navController.navigateRoot).toHaveBeenCalledWith(['/', 'login']);
+    it('attempts to restore the session', async () => {
+      const identity = TestBed.inject(IdentityService);
+      await service.canActivate();
+      expect(identity.restoreSession).toHaveBeenCalledTimes(1);
     });
 
-    it('returns false', () => {
-      expect(service.canActivate()).toEqual(false);
+    describe('if a session is restored', () => {
+      beforeEach(() => {
+        const identity = TestBed.inject(IdentityService);
+        (identity.restoreSession as any).and.callFake(() => {
+          (identity as any).token = '294905993';
+        });
+      });
+
+      it('does not navigate', async () => {
+        const navController = TestBed.inject(NavController);
+        await service.canActivate();
+        expect(navController.navigateRoot).not.toHaveBeenCalled();
+      });
+
+      it('returns true', async () => {
+        expect(await service.canActivate()).toEqual(true);
+      });
+    });
+
+    describe('if a session is not restored', () => {
+      it('navigates to the login page', async () => {
+        const navController = TestBed.inject(NavController);
+        await service.canActivate();
+        expect(navController.navigateRoot).toHaveBeenCalledTimes(1);
+        expect(navController.navigateRoot).toHaveBeenCalledWith(['/', 'login']);
+      });
+
+      it('returns false', async () => {
+        expect(await service.canActivate()).toEqual(false);
+      });
     });
   });
 });

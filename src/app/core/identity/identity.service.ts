@@ -1,17 +1,16 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Platform } from '@ionic/angular';
 import {
   AuthMode,
   DefaultSession,
   IonicIdentityVaultUser,
   IonicNativeAuthPlugin,
+  LockEvent,
+  VaultErrorCodes,
 } from '@ionic-enterprise/identity-vault';
 import { Subject, Observable } from 'rxjs';
-import { take } from 'rxjs/operators';
 
 import { User } from '@app/models';
-import { environment } from '@env/environment';
 import { BrowserVaultPlugin } from '../browser-vault/browser-vault.plugin';
 
 @Injectable({
@@ -20,47 +19,58 @@ import { BrowserVaultPlugin } from '../browser-vault/browser-vault.plugin';
 export class IdentityService extends IonicIdentityVaultUser<DefaultSession> {
   /* tslint:disable:variable-name */
   private _changed: Subject<DefaultSession>;
-  private _user: User;
   /* tslint:enable:variable-name */
 
   get changed(): Observable<DefaultSession> {
     return this._changed.asObservable();
   }
 
-  get user(): User {
-    return this._user;
-  }
-
   constructor(
     private browserVaultPlugin: BrowserVaultPlugin,
-    private http: HttpClient,
     platform: Platform,
   ) {
-    super(platform, { authMode: AuthMode.SecureStorage });
+    super(platform, {
+      authMode: AuthMode.SecureStorage,
+      unlockOnAccess: true,
+      hideScreenOnBackground: true,
+      lockAfter: 5000,
+    });
     this._changed = new Subject();
   }
 
-  async init(): Promise<void> {
-    await this.restoreSession();
-    if (this.token) {
-      this.http
-        .get<User>(`${environment.dataService}/users/current`)
-        .pipe(take(1))
-        .subscribe(u => (this._user = u));
-    }
-  }
-
   async set(user: User, token: string): Promise<void> {
+    const mode = (await this.isBiometricsAvailable())
+      ? AuthMode.BiometricOnly
+      : AuthMode.PasscodeOnly;
     const session = { username: user.email, token };
-    this._user = user;
-    await this.login(session);
+    await this.login(session, mode);
     this._changed.next(session);
   }
 
   async clear(): Promise<void> {
-    this._user = undefined;
     await this.logout();
     this._changed.next();
+  }
+
+  onVaultLocked(evt: LockEvent) {
+    this._changed.next();
+  }
+
+  onSessionRestored(session: DefaultSession) {
+    this._changed.next(session);
+  }
+
+  async restoreSession(): Promise<DefaultSession> {
+    try {
+      return await super.restoreSession();
+    } catch (error) {
+      if (error.code === VaultErrorCodes.VaultLocked) {
+        const vault = await this.getVault();
+        await vault.clear();
+      } else {
+        throw error;
+      }
+    }
   }
 
   getPlugin(): IonicNativeAuthPlugin {

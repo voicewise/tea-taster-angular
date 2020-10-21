@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
-import { AuthenticationService } from '@app/core';
+import { Component, OnInit } from '@angular/core';
+import { AuthenticationService, IdentityService } from '@app/core';
+import { AuthMode } from '@ionic-enterprise/identity-vault';
 import { take } from 'rxjs/operators';
 
 @Component({
@@ -7,12 +8,21 @@ import { take } from 'rxjs/operators';
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
 })
-export class LoginPage {
+export class LoginPage implements OnInit {
   email: string;
   password: string;
   errorMessage: string;
 
-  constructor(private auth: AuthenticationService) {}
+  displayVaultLogin: boolean;
+
+  constructor(
+    private auth: AuthenticationService,
+    private identity: IdentityService,
+  ) {}
+
+  async ngOnInit(): Promise<void> {
+    this.displayVaultLogin = await this.canUnlock();
+  }
 
   signIn() {
     this.auth
@@ -23,5 +33,23 @@ export class LoginPage {
           this.errorMessage = 'Invalid e-mail address or password';
         }
       });
+  }
+
+  unlock() {
+    this.identity.restoreSession();
+  }
+
+  private async canUnlock(): Promise<boolean> {
+    if (!(await this.identity.hasStoredSession())) {
+      return false;
+    }
+
+    const mode = await this.identity.getAuthMode();
+    return (
+      mode === AuthMode.PasscodeOnly ||
+      mode === AuthMode.BiometricAndPasscode ||
+      (mode === AuthMode.BiometricOnly &&
+        (await this.identity.isBiometricsAvailable()))
+    );
   }
 }

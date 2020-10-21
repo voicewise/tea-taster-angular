@@ -7,10 +7,14 @@ import {
 } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
+import { AuthMode } from '@ionic-enterprise/identity-vault';
 
 import { LoginPage } from './login.page';
-import { AuthenticationService } from '@app/core';
-import { createAuthenticationServiceMock } from '@app/core/testing';
+import { AuthenticationService, IdentityService } from '@app/core';
+import {
+  createAuthenticationServiceMock,
+  createIdentityServiceMock,
+} from '@app/core/testing';
 import { of } from 'rxjs';
 
 describe('LoginPage', () => {
@@ -27,6 +31,7 @@ describe('LoginPage', () => {
             provide: AuthenticationService,
             useFactory: createAuthenticationServiceMock,
           },
+          { provide: IdentityService, useFactory: createIdentityServiceMock },
         ],
       }).compileComponents();
 
@@ -38,6 +43,68 @@ describe('LoginPage', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('init', () => {
+    describe('without a stored session', () => {
+      let identity: IdentityService;
+      beforeEach(() => {
+        identity = TestBed.inject(IdentityService);
+        (identity.hasStoredSession as any).and.returnValue(
+          Promise.resolve(false),
+        );
+      });
+
+      it('sets displayVaultLogin to false', async () => {
+        await component.ngOnInit();
+        expect(component.displayVaultLogin).toEqual(false);
+      });
+    });
+
+    describe('with a stored session', () => {
+      let identity: IdentityService;
+      beforeEach(() => {
+        identity = TestBed.inject(IdentityService);
+        (identity.hasStoredSession as any).and.returnValue(
+          Promise.resolve(true),
+        );
+      });
+
+      it('sets displayVaultLogin to true for passcode', async () => {
+        (identity.getAuthMode as any).and.returnValue(
+          Promise.resolve(AuthMode.PasscodeOnly),
+        );
+        await component.ngOnInit();
+        expect(component.displayVaultLogin).toEqual(true);
+      });
+
+      it('sets displayVaultLogin to true for biometric and passcode', async () => {
+        (identity.getAuthMode as any).and.returnValue(
+          Promise.resolve(AuthMode.BiometricAndPasscode),
+        );
+        await component.ngOnInit();
+        expect(component.displayVaultLogin).toEqual(true);
+      });
+
+      it('sets displayVaultLogin to false for biometric when bio is not available', async () => {
+        (identity.getAuthMode as any).and.returnValue(
+          Promise.resolve(AuthMode.BiometricOnly),
+        );
+        await component.ngOnInit();
+        expect(component.displayVaultLogin).toEqual(false);
+      });
+
+      it('sets displayVaultLogin to true for biometric when bio is available', async () => {
+        (identity.isBiometricsAvailable as any).and.returnValue(
+          Promise.resolve(true),
+        );
+        (identity.getAuthMode as any).and.returnValue(
+          Promise.resolve(AuthMode.BiometricOnly),
+        );
+        await component.ngOnInit();
+        expect(component.displayVaultLogin).toEqual(true);
+      });
+    });
   });
 
   describe('email input binding', () => {
@@ -158,6 +225,7 @@ describe('LoginPage', () => {
     }));
 
     it('starts with no error message', () => {
+      fixture.detectChanges();
       expect(errorDiv.textContent).toEqual('');
     });
 

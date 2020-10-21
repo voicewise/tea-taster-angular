@@ -32,6 +32,15 @@
       </ion-item>
     </ion-list>
 
+    <div
+      class="unlock-app ion-text-center"
+      *ngIf="displayVaultLogin"
+      (click)="unlock()"
+    >
+      <ion-icon name="lock-open-outline"></ion-icon>
+      <div>Unlock</div>
+    </div>
+
     <div class="error-message">
       <div
         *ngIf="emailInput.invalid && (emailInput.dirty || emailInput.touched)"
