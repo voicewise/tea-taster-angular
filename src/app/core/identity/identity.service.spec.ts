@@ -1,17 +1,31 @@
 import { TestBed } from '@angular/core/testing';
-import { Platform } from '@ionic/angular';
+import { ModalController, Platform } from '@ionic/angular';
 import { AuthMode } from '@ionic-enterprise/identity-vault';
 
 import { IdentityService } from './identity.service';
-import { createPlatformMock } from '@test/mocks';
+import {
+  createOverlayControllerMock,
+  createOverlayElementMock,
+  createPlatformMock,
+} from '@test/mocks';
 import { DefaultSession } from '@ionic-enterprise/identity-vault';
+import { PinDialogComponent } from '@app/pin-dialog/pin-dialog.component';
 
 describe('IdentityService', () => {
   let service: IdentityService;
+  let modal: HTMLIonModalElement;
 
   beforeEach(() => {
+    modal = createOverlayElementMock('modal');
     TestBed.configureTestingModule({
-      providers: [{ provide: Platform, useFactory: createPlatformMock }],
+      providers: [
+        {
+          provide: ModalController,
+          useFactory: () =>
+            createOverlayControllerMock('ModalController', modal),
+        },
+        { provide: Platform, useFactory: createPlatformMock },
+      ],
     });
     service = TestBed.inject(IdentityService);
   });
@@ -142,6 +156,45 @@ describe('IdentityService', () => {
         username: 'test@test.org',
         token: '19940059fkkf039',
       });
+    });
+  });
+
+  describe('onPasscodeRequest', () => {
+    beforeEach(() => {
+      (modal.onDidDismiss as any).and.returnValue(
+        Promise.resolve({ role: 'cancel' }),
+      );
+    });
+
+    [true, false].forEach(setPasscode => {
+      it(`creates a PIN dialog, setting passcode: ${setPasscode}`, async () => {
+        const modalController = TestBed.inject(ModalController);
+        await service.onPasscodeRequest(setPasscode);
+        expect(modalController.create).toHaveBeenCalledTimes(1);
+        expect(modalController.create).toHaveBeenCalledWith({
+          backdropDismiss: false,
+          component: PinDialogComponent,
+          componentProps: {
+            setPasscodeMode: setPasscode,
+          },
+        });
+      });
+    });
+
+    it('presents the modal', async () => {
+      await service.onPasscodeRequest(false);
+      expect(modal.present).toHaveBeenCalledTimes(1);
+    });
+
+    it('resolves to the PIN', async () => {
+      (modal.onDidDismiss as any).and.returnValue(
+        Promise.resolve({ data: '4203', role: 'OK' }),
+      );
+      expect(await service.onPasscodeRequest(true)).toEqual('4203');
+    });
+
+    it('resolves to an empty string if the PIN is undefined', async () => {
+      expect(await service.onPasscodeRequest(true)).toEqual('');
     });
   });
 });
