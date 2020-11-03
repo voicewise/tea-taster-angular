@@ -11,6 +11,7 @@ export function createIdentityServiceMock() {
     isBiometricsAvailable: Promise.resolve(false),
     getAuthMode: Promise.resolve(AuthMode.InMemoryOnly),
     restoreSession: Promise.resolve(null),
+    useAuthMode: undefined,
   });
   (mock as any).changed = new Subject<DefaultSession>();
   return mock;

@@ -21,6 +21,7 @@ export class IdentityService extends IonicIdentityVaultUser<DefaultSession> {
   /* tslint:disable:variable-name */
   private _changed: Subject<DefaultSession>;
   /* tslint:enable:variable-name */
+  private authMode: AuthMode;
 
   get changed(): Observable<DefaultSession> {
     return this._changed.asObservable();
@@ -32,18 +33,26 @@ export class IdentityService extends IonicIdentityVaultUser<DefaultSession> {
     platform: Platform,
   ) {
     super(platform, {
-      authMode: AuthMode.SecureStorage,
       unlockOnAccess: true,
       hideScreenOnBackground: true,
       lockAfter: 5000,
+      allowSystemPinFallback: true,
+      shouldClearVaultAfterTooManyFailedAttempts: false,
     });
     this._changed = new Subject();
   }
 
+  useAuthMode(authMode: AuthMode) {
+    this.authMode = authMode;
+  }
+
   async set(user: User, token: string): Promise<void> {
-    const mode = (await this.isBiometricsAvailable())
-      ? AuthMode.BiometricOnly
-      : AuthMode.PasscodeOnly;
+    const mode =
+      this.authMode === undefined
+        ? (await this.isBiometricsAvailable())
+          ? AuthMode.BiometricOnly
+          : AuthMode.PasscodeOnly
+        : this.authMode;
     const session = { username: user.email, token };
     await this.login(session, mode);
     this._changed.next(session);

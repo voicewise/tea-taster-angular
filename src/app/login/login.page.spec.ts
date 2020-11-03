@@ -6,7 +6,7 @@ import {
   waitForAsync,
 } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, Platform } from '@ionic/angular';
 import { AuthMode } from '@ionic-enterprise/identity-vault';
 
 import { LoginPage } from './login.page';
@@ -16,6 +16,7 @@ import {
   createIdentityServiceMock,
 } from '@app/core/testing';
 import { of } from 'rxjs';
+import { createPlatformMock } from '@test/mocks';
 
 describe('LoginPage', () => {
   let component: LoginPage;
@@ -32,6 +33,7 @@ describe('LoginPage', () => {
             useFactory: createAuthenticationServiceMock,
           },
           { provide: IdentityService, useFactory: createIdentityServiceMock },
+          { provide: Platform, useFactory: createPlatformMock },
         ],
       }).compileComponents();
 
@@ -46,63 +48,151 @@ describe('LoginPage', () => {
   });
 
   describe('init', () => {
-    describe('without a stored session', () => {
-      let identity: IdentityService;
-      beforeEach(() => {
-        identity = TestBed.inject(IdentityService);
-        (identity.hasStoredSession as any).and.returnValue(
-          Promise.resolve(false),
-        );
+    describe('in a web context', () => {
+      it('hides the session storage selection', async () => {
+        await component.ngOnInit();
+        expect(component.displayLockingOptions).toEqual(false);
       });
 
-      it('sets displayVaultLogin to false', async () => {
+      it('defaults the auth mode to secure storage', async () => {
         await component.ngOnInit();
-        expect(component.displayVaultLogin).toEqual(false);
+        expect(component.authMode).toEqual(AuthMode.SecureStorage);
       });
     });
 
-    describe('with a stored session', () => {
-      let identity: IdentityService;
+    describe('in a hybrid mobile context', () => {
       beforeEach(() => {
-        identity = TestBed.inject(IdentityService);
-        (identity.hasStoredSession as any).and.returnValue(
-          Promise.resolve(true),
-        );
+        const platform = TestBed.inject(Platform);
+        (platform.is as any).withArgs('hybrid').and.returnValue(true);
       });
 
-      it('sets displayVaultLogin to true for passcode', async () => {
-        (identity.getAuthMode as any).and.returnValue(
-          Promise.resolve(AuthMode.PasscodeOnly),
-        );
+      it('uses a default set of auth modes', async () => {
         await component.ngOnInit();
-        expect(component.displayVaultLogin).toEqual(true);
+        expect(component.authModes).toEqual([
+          {
+            mode: AuthMode.PasscodeOnly,
+            label: 'Session PIN Unlock',
+          },
+          {
+            mode: AuthMode.SecureStorage,
+            label: 'Never Lock Session',
+          },
+          {
+            mode: AuthMode.InMemoryOnly,
+            label: 'Force Login',
+          },
+        ]);
       });
 
-      it('sets displayVaultLogin to true for biometric and passcode', async () => {
-        (identity.getAuthMode as any).and.returnValue(
-          Promise.resolve(AuthMode.BiometricAndPasscode),
-        );
+      it('defaults the auth mode to PIN', async () => {
         await component.ngOnInit();
-        expect(component.displayVaultLogin).toEqual(true);
+        expect(component.authMode).toEqual(AuthMode.PasscodeOnly);
       });
 
-      it('sets displayVaultLogin to false for biometric when bio is not available', async () => {
-        (identity.getAuthMode as any).and.returnValue(
-          Promise.resolve(AuthMode.BiometricOnly),
-        );
+      it('displays the session storage selection', async () => {
         await component.ngOnInit();
-        expect(component.displayVaultLogin).toEqual(false);
+        expect(component.displayLockingOptions).toEqual(true);
       });
 
-      it('sets displayVaultLogin to true for biometric when bio is available', async () => {
-        (identity.isBiometricsAvailable as any).and.returnValue(
-          Promise.resolve(true),
-        );
-        (identity.getAuthMode as any).and.returnValue(
-          Promise.resolve(AuthMode.BiometricOnly),
-        );
-        await component.ngOnInit();
-        expect(component.displayVaultLogin).toEqual(true);
+      describe('when biometrics are available', () => {
+        beforeEach(() => {
+          const identity = TestBed.inject(IdentityService);
+          (identity.isBiometricsAvailable as any).and.returnValue(
+            Promise.resolve(true),
+          );
+        });
+
+        it('adds bio auth mode', async () => {
+          await component.ngOnInit();
+          expect(component.authModes).toEqual([
+            {
+              mode: AuthMode.BiometricOnly,
+              label: 'Biometric Unlock',
+            },
+            {
+              mode: AuthMode.PasscodeOnly,
+              label: 'Session PIN Unlock',
+            },
+            {
+              mode: AuthMode.SecureStorage,
+              label: 'Never Lock Session',
+            },
+            {
+              mode: AuthMode.InMemoryOnly,
+              label: 'Force Login',
+            },
+          ]);
+        });
+
+        it('defaults the auth mode to Bio', async () => {
+          await component.ngOnInit();
+          expect(component.authMode).toEqual(AuthMode.BiometricOnly);
+        });
+
+        it('displays the session storage selection', async () => {
+          await component.ngOnInit();
+          expect(component.displayLockingOptions).toEqual(true);
+        });
+      });
+
+      describe('without a stored session', () => {
+        let identity: IdentityService;
+        beforeEach(() => {
+          identity = TestBed.inject(IdentityService);
+          (identity.hasStoredSession as any).and.returnValue(
+            Promise.resolve(false),
+          );
+        });
+
+        it('sets displayVaultLogin to false', async () => {
+          await component.ngOnInit();
+          expect(component.displayVaultLogin).toEqual(false);
+        });
+      });
+
+      describe('with a stored session', () => {
+        let identity: IdentityService;
+        beforeEach(() => {
+          identity = TestBed.inject(IdentityService);
+          (identity.hasStoredSession as any).and.returnValue(
+            Promise.resolve(true),
+          );
+        });
+
+        it('sets displayVaultLogin to true for passcode', async () => {
+          (identity.getAuthMode as any).and.returnValue(
+            Promise.resolve(AuthMode.PasscodeOnly),
+          );
+          await component.ngOnInit();
+          expect(component.displayVaultLogin).toEqual(true);
+        });
+
+        it('sets displayVaultLogin to true for biometric and passcode', async () => {
+          (identity.getAuthMode as any).and.returnValue(
+            Promise.resolve(AuthMode.BiometricAndPasscode),
+          );
+          await component.ngOnInit();
+          expect(component.displayVaultLogin).toEqual(true);
+        });
+
+        it('sets displayVaultLogin to false for biometric when bio is not available', async () => {
+          (identity.getAuthMode as any).and.returnValue(
+            Promise.resolve(AuthMode.BiometricOnly),
+          );
+          await component.ngOnInit();
+          expect(component.displayVaultLogin).toEqual(false);
+        });
+
+        it('sets displayVaultLogin to true for biometric when bio is available', async () => {
+          (identity.isBiometricsAvailable as any).and.returnValue(
+            Promise.resolve(true),
+          );
+          (identity.getAuthMode as any).and.returnValue(
+            Promise.resolve(AuthMode.BiometricOnly),
+          );
+          await component.ngOnInit();
+          expect(component.displayVaultLogin).toEqual(true);
+        });
       });
     });
   });
@@ -185,6 +275,16 @@ describe('LoginPage', () => {
       setInputValue(email, 'testtest.com');
       setInputValue(password, 'YouShallNotPa$$');
       expect(button.disabled).toEqual(true);
+    });
+
+    it('sets the selected auth mode', () => {
+      const identity = TestBed.inject(IdentityService);
+      component.authMode = AuthMode.InMemoryOnly;
+      setInputValue(email, 'test@test.com');
+      setInputValue(password, 'password');
+      click(button);
+      expect(identity.useAuthMode).toHaveBeenCalledTimes(1);
+      expect(identity.useAuthMode).toHaveBeenCalledWith(AuthMode.InMemoryOnly);
     });
 
     it('performs a login on clicked', () => {

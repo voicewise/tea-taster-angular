@@ -83,6 +83,28 @@ describe('IdentityService', () => {
       );
     });
 
+    it('uses the set auth mode', async () => {
+      service.useAuthMode(AuthMode.InMemoryOnly);
+      spyOn(service, 'login');
+      await service.set(
+        {
+          id: 42,
+          firstName: 'Joe',
+          lastName: 'Tester',
+          email: 'test@test.org',
+        },
+        '19940059fkkf039',
+      );
+      expect(service.login).toHaveBeenCalledTimes(1);
+      expect(service.login).toHaveBeenCalledWith(
+        {
+          username: 'test@test.org',
+          token: '19940059fkkf039',
+        },
+        AuthMode.InMemoryOnly,
+      );
+    });
+
     it('emits the change', async () => {
       let session: DefaultSession;
       service.changed.subscribe(s => (session = s));
